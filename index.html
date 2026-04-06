@@ -6,47 +6,25 @@
     <title>Anesidora Radio</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0b0b0b; color: #ffffff; margin: 0; padding: 20px; }
-        h1 { color: #1DB954; text-align: center; margin-bottom: 5px; font-weight: 800; letter-spacing: -1px; }
+        h1 { color: #1DB954; text-align: center; margin-bottom: 5px; font-weight: 800; }
         .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 30px; }
         .layout { display: flex; justify-content: center; max-width: 1200px; margin: 0 auto; gap: 20px; }
-        
         .sidebar, .player-area, .queue-area { background-color: #121212; padding: 20px; border-radius: 12px; border: 1px solid #222; }
-        .sidebar { width: 20%; }
-        .queue-area { width: 30%; }
-        .player-area { width: 40%; text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 550px; position: relative; }
-        
-        input { width: 85%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; margin-bottom: 10px; transition: 0.3s; }
-        input:focus { border-color: #1DB954; }
-        button.btn-ir { background: #1DB954; color: black; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
-        button.btn-ir:hover { background: #1ed760; transform: scale(1.02); }
-        
+        .sidebar { width: 20%; } .queue-area { width: 30%; } .player-area { width: 40%; text-align: center; }
+        input { width: 85%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; margin-bottom: 10px; }
+        button.btn-ir { background: #1DB954; color: black; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
         .estaciones-list { list-style: none; padding: 0; margin-top: 20px; }
-        .estaciones-list li { padding: 12px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: #181818; transition: 0.2s; }
-        .estaciones-list li:hover { background: #282828; }
-        .estaciones-list li.activa { border: 1px solid #1DB954; background: #1a1a1a; color: #1DB954; font-weight: bold; }
-        
-        #caratula-cancion { width: 100%; max-width: 300px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); background: #222; transition: 0.5s; }
-        .info-reproductor h2 { margin: 0; font-size: 22px; font-weight: 700; color: #fff; }
-        .artista { color: #1DB954; font-weight: bold; margin-top: 8px; font-size: 16px; }
-        .album { font-size: 12px; color: #555; margin-top: 4px; }
-
-        .controles { margin-top: 30px; display: flex; align-items: center; gap: 15px; }
-        .controles button { background: #fff; border: none; color: black; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .controles button:hover { transform: scale(1.1); background: #1DB954; }
-        .btn-play { width: 65px !important; height: 65px !important; font-size: 24px !important; }
-
+        .estaciones-list li { padding: 12px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; background: #181818; }
+        .estaciones-list li.activa { border: 1px solid #1DB954; color: #1DB954; }
+        #caratula-cancion { width: 100%; max-width: 280px; border-radius: 10px; margin-bottom: 20px; background: #222; }
+        .controles { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .controles button { background: #fff; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; }
         .queue-list { list-style: none; padding: 0; }
-        .queue-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 6px; display: flex; flex-direction: column; background: #181818; border: 1px solid transparent; }
-        .queue-list li:hover { border-color: #333; background: #222; }
-        .queue-list li strong { font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .queue-list li span { font-size: 11px; color: #1DB954; margin-top: 2px; }
-        
-        .msg-ia { text-align: center; font-size: 10px; color: #333; padding: 20px; font-style: italic; letter-spacing: 1px; }
-        #status-api { font-size: 9px; color: #222; position: absolute; bottom: 10px; }
+        .queue-list li { padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 6px; background: #181818; font-size: 13px; }
         #youtube-container { position: absolute; left: -9999px; }
     </style>
 </head>
-<body onload="inicializarApp()">
+<body onload="inicializar()">
 
     <h1>Anesidora</h1>
     <p class="subtitle">Radio from the Smart Algorithm</p>
@@ -54,31 +32,25 @@
     <div class="layout">
         <div class="sidebar">
             <h3>Estaciones</h3>
-            <input type="text" id="artista-input" placeholder="Artista o banda...">
-            <button class="btn-ir" onclick="iniciarEstacionNueva()">CREAR RADIO</button>
-            <ul class="estaciones-list" id="lista-estaciones"></ul>
+            <input type="text" id="artista-input" placeholder="Artista...">
+            <button class="btn-ir" onclick="nuevaEstacion()">CREAR</button>
+            <ul id="lista-estaciones" class="estaciones-list"></ul>
         </div>
 
         <div class="player-area">
-            <div id="estacion-label" style="color:#333; font-size:10px; font-weight:bold; margin-bottom:20px; letter-spacing:2px;">ESPERANDO SEÑAL</div>
             <img id="caratula-cancion" src="https://via.placeholder.com/300/121212/222?text=..." alt="">
-            <div class="info-reproductor">
-                <h2 id="titulo-cancion">Selecciona música</h2>
-                <div id="artista-cancion" class="artista"></div>
-                <div id="album-cancion" class="album"></div>
-            </div>
+            <h2 id="titulo-cancion">Selecciona música</h2>
+            <div id="artista-cancion" style="color:#1DB954; font-weight:bold;"></div>
             <div class="controles">
                 <button onclick="prevCancion()">⏮</button>
-                <button onclick="togglePlayPause()" id="btn-play-pause" class="btn-play">▶</button>
+                <button onclick="togglePlay()" id="btn-play">▶</button>
                 <button onclick="nextCancion(true)">⏭</button>
             </div>
-            <div id="status-api">Conectando...</div>
         </div>
 
         <div class="queue-area">
-            <h3>Próximas en sonar</h3>
-            <ul class="queue-list" id="cola-lista"></ul>
-            <div class="msg-ia" id="msg-ia"></div>
+            <h3>Próximas</h3>
+            <ul id="cola-lista" class="queue-list"></ul>
         </div>
     </div>
 
@@ -86,160 +58,104 @@
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        let player, reproduciendo = false, colaCanciones = [], cancionActual = null, artistaActivo = "";
-        const API_URL = "https://anesidora-api.onrender.com";
+        let player, cola = [], actual = null, artistaActivo = "";
+        const API = "https://anesidora-api.onrender.com";
 
-        async function inicializarApp() {
-            fetch(API_URL).then(() => document.getElementById('status-api').innerText = "Cerebro Online ✅");
-            cargarEstacionesGuardadas();
-        }
+        function inicializar() { cargarEstaciones(); }
 
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', { height: '10', width: '10', videoId: '', playerVars: { 'autoplay': 1, 'controls': 0 },
-                events: { 'onStateChange': e => {
-                    if (e.data == YT.PlayerState.PLAYING) { document.getElementById('btn-play-pause').innerHTML = '⏸'; reproduciendo = true; }
-                    else if (e.data == YT.PlayerState.PAUSED) { document.getElementById('btn-play-pause').innerHTML = '▶'; reproduciendo = false; }
-                    else if (e.data == YT.PlayerState.ENDED) nextCancion(false);
-                }}
+            player = new YT.Player('player', { height: '1', width: '1', videoId: '', 
+                events: { 'onStateChange': e => { if(e.data == 0) nextCancion(false); } } 
             });
         }
 
-        async function cargarEstacionesGuardadas() {
-            try {
-                const res = await fetch(`${API_URL}/listar-estaciones`);
-                const datos = await res.json();
-                const lista = document.getElementById('lista-estaciones');
-                lista.innerHTML = "";
-                if(datos.estaciones) datos.estaciones.forEach(art => agregarEstacionVisual(art));
-            } catch (e) {}
+        async function cargarEstaciones() {
+            const res = await fetch(`${API}/listar-estaciones`);
+            const data = await res.json();
+            const ul = document.getElementById('lista-estaciones');
+            ul.innerHTML = "";
+            data.estaciones.forEach(art => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${art}</span><button onclick="borrarEstacion(event, '${art}')">✖</button>`;
+                li.onclick = () => reproducir(art);
+                ul.appendChild(li);
+            });
         }
 
-        function agregarEstacionVisual(artista, alInicio = false) {
-            const lista = document.getElementById('lista-estaciones');
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${artista}</span><button style="background:none; border:none; color:#444; cursor:pointer;" onclick="eliminarEstacion(event, '${artista}')">✖</button>`;
-            li.onclick = () => reproducirEstacion(artista);
-            li.dataset.artista = artista;
-            alInicio ? lista.prepend(li) : lista.appendChild(li);
-        }
-
-        async function eliminarEstacion(e, artista) {
-            e.stopPropagation();
-            await fetch(`${API_URL}/borrar-estacion?artista=${encodeURIComponent(artista)}`);
-            cargarEstacionesGuardadas();
-        }
-
-        async function iniciarEstacionNueva() {
+        async function nuevaEstacion() {
             const art = document.getElementById('artista-input').value;
-            if (!art) return;
-            fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
-            agregarEstacionVisual(art, true);
-            reproducirEstacion(art);
+            if(!art) return;
+            await fetch(`${API}/guardar-estacion?artista=${encodeURIComponent(art)}`);
+            reproducir(art);
+            cargarEstaciones();
             document.getElementById('artista-input').value = "";
         }
 
-        // --- SISTEMA DE REINTENTO AGRESIVO ---
-        async function reproducirEstacion(artista, reintento = 0) {
-            artistaActivo = artista;
-            document.getElementById('estacion-label').innerText = "ESTACIÓN: " + artista.toUpperCase();
-            document.getElementById('titulo-cancion').innerText = "Invocando señal...";
-            marcarActiva(artista);
-            
-            try {
-                // Buscamos la canción con un timeout de 8 segundos
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const resB = await fetch(`${API_URL}/buscar?artista=${encodeURIComponent(artista)}`, { signal: controller.signal });
-                const datosB = await resB.json();
-                clearTimeout(timeoutId);
+        async function borrarEstacion(e, art) {
+            e.stopPropagation();
+            await fetch(`${API}/borrar-estacion?artista=${encodeURIComponent(art)}`);
+            cargarEstaciones();
+        }
 
-                if(!datosB.cancion_encontrada || !datosB.cancion_encontrada.length) throw "Vacío";
-                
-                const semilla = datosB.cancion_encontrada[0];
-                cargarCancion(semilla);
-                
-                // Pedimos la radio
-                const resR = await fetch(`${API_URL}/radio?video_id=${semilla.videoId}&artista=${encodeURIComponent(artista)}`);
-                const datosR = await resR.json();
-                
-                colaCanciones = datosR.cola;
-                // Si la primera es la que ya está sonando, la sacamos
-                if(colaCanciones[0].videoId === semilla.videoId) colaCanciones.shift();
-                
-                actualizarColaUI();
-            } catch (e) { 
-                if(reintento < 2) {
-                    console.log("Reintentando...");
-                    setTimeout(() => reproducirEstacion(artista, reintento + 1), 2000);
-                } else {
-                    document.getElementById('titulo-cancion').innerText = "Señal débil. Intenta otro artista.";
-                }
+        async function reproducir(artista) {
+            artistaActivo = artista;
+            document.getElementById('titulo-cancion').innerText = "Cargando...";
+            try {
+                const resB = await fetch(`${API}/buscar?artista=${encodeURIComponent(artista)}`);
+                const dataB = await resB.json();
+                const cancion = dataB.cancion_encontrada[0];
+                if(!cancion) return;
+
+                cargarInfo(cancion);
+                player.loadVideoById(cancion.videoId);
+
+                const resR = await fetch(`${API}/radio?video_id=${cancion.videoId}&artista=${encodeURIComponent(artista)}`);
+                const dataR = await resR.json();
+                cola = dataR.cola || [];
+                actualizarCola();
+            } catch (e) {
+                document.getElementById('titulo-cancion').innerText = "Error de conexión";
             }
         }
 
-        function cargarCancion(c) {
-            if(!c) return;
-            cancionActual = c;
+        function cargarInfo(c) {
+            actual = c;
             document.getElementById('titulo-cancion').innerText = c.title;
-            
-            let artNombre = c.artists ? (Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists)) : "Artista desconocido";
-            document.getElementById('artista-cancion').innerText = artNombre;
-
-            let albNombre = c.album ? (typeof c.album === 'object' ? c.album.name : c.album) : "";
-            document.getElementById('album-cancion').innerText = albNombre;
-
-            const thumb = (c.thumbnails && c.thumbnails.length) ? c.thumbnails[c.thumbnails.length-1].url : "";
-            document.getElementById('caratula-cancion').src = thumb;
-            player.loadVideoById(c.videoId);
+            document.getElementById('artista-cancion').innerText = artistaActivo;
+            document.getElementById('caratula-cancion').src = c.thumbnails[c.thumbnails.length-1].url;
         }
 
-        function actualizarColaUI() {
+        function actualizarCola() {
             const ul = document.getElementById('cola-lista');
-            ul.innerHTML = "";
-            const proximas = colaCanciones.slice(0, 10);
-            proximas.forEach((c, index) => {
-                const li = document.createElement('li');
-                let art = c.artists ? (Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists)) : "Varios";
-                li.innerHTML = `<strong>${c.title}</strong><span>${art}</span>`;
-                li.onclick = () => saltarACancionDesdeCola(index);
-                ul.appendChild(li);
-            });
-            document.getElementById('msg-ia').innerText = proximas.length > 0 ? "ALGORITMO APRENDIENDO..." : "";
+            ul.innerHTML = cola.slice(0, 10).map((c, i) => `<li onclick="saltarA(${i})">${c.title}</li>`).join("");
         }
 
-        function saltarACancionDesdeCola(index) {
-            const elegida = colaCanciones[index];
-            colaCanciones = colaCanciones.slice(index + 1);
-            cargarCancion(elegida);
-            actualizarColaUI();
+        function saltarA(i) {
+            const c = cola[i];
+            cola = cola.slice(i + 1);
+            cargarInfo(c);
+            player.loadVideoById(c.videoId);
+            actualizarCola();
         }
 
         function nextCancion(manual) {
-            if (manual && cancionActual) {
-                fetch(`${API_URL}/registrar-salto?video_id=${cancionActual.videoId}&titulo=${encodeURIComponent(cancionActual.title)}`);
-            }
-            if (colaCanciones.length > 0) { 
-                const siguiente = colaCanciones.shift();
-                cargarCancion(siguiente); 
-                actualizarColaUI(); 
+            if(manual && actual) fetch(`${API}/registrar-salto?video_id=${actual.videoId}&titulo=${encodeURIComponent(actual.title)}`);
+            if(cola.length > 0) {
+                const c = cola.shift();
+                cargarInfo(c);
+                player.loadVideoById(c.videoId);
+                actualizarCola();
             } else {
-                reproducirEstacion(artistaActivo);
+                reproducir(artistaActivo);
             }
         }
 
-        function togglePlayPause() {
+        function togglePlay() {
             const s = player.getPlayerState();
             s == 1 ? player.pauseVideo() : player.playVideo();
         }
 
-        function marcarActiva(art) {
-            document.querySelectorAll('.estaciones-list li').forEach(li => li.classList.remove('activa'));
-            const el = Array.from(document.querySelectorAll('.estaciones-list li')).find(li => li.dataset.artista === art);
-            if (el) el.classList.add('activa');
-        }
-
-        function prevCancion() { alert("Historial próximamente"); }
+        function prevCancion() { alert("Historial no disponible"); }
     </script>
 </body>
 </html>
