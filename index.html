@@ -13,20 +13,22 @@
         .sidebar, .queue-area { width: 25%; }
         .player-area { width: 45%; text-align: center; display: flex; flex-direction: column; align-items: center; }
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #333; color: white; }
+        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #333; color: white; outline: none; }
         button.btn-ir { background: #1DB954; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .estaciones-list { list-style: none; padding: 0; }
-        .estaciones-list li { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; }
-        .estaciones-list li.activa { color: #1DB954; border-left: 3px solid #1DB954; background: #252525; }
-        #caratula-cancion { width: 100%; max-width: 300px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .controles button { background: none; border: 1px solid #555; color: white; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; margin: 0 10px; font-size: 20px; }
-        .controles button:hover { background: #1DB954; }
+        .estaciones-list li { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .estaciones-list li:hover { background: #252525; }
+        .estaciones-list li.activa { color: #1DB954; border-left: 3px solid #1DB954; background: #252525; font-weight: bold; }
+        #caratula-cancion { width: 100%; max-width: 300px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); background-color: #333; }
+        .controles button { background: none; border: 1px solid #555; color: white; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; margin: 0 10px; font-size: 20px; transition: 0.2s; }
+        .controles button:hover { background: #1DB954; border-color: #1DB954; }
         .queue-list { list-style: none; padding: 0; font-size: 14px; color: #ccc; }
         .queue-list li { padding: 8px 0; border-bottom: 1px dashed #333; }
         #youtube-container { position: absolute; left: -9999px; }
+        .status-msg { font-size: 12px; color: #888; margin-top: 10px; }
     </style>
 </head>
-<body onload="cargarEstacionesGuardadas()">
+<body onload="inicializarApp()">
 
     <h1>Anesidora</h1>
     <p class="subtitle">Radio from the Smart Algorithm</p>
@@ -43,14 +45,15 @@
         </div>
 
         <div class="player-area">
-            <div id="estacion-label" style="color:#1DB954; font-size:12px; font-weight:bold; margin-bottom:10px;">LISTA DE ESPERA</div>
-            <img id="caratula-cancion" src="https://via.placeholder.com/300?text=Anesidora" alt="">
-            <h2 id="titulo-cancion">Esperando música...</h2>
+            <div id="estacion-label" style="color:#1DB954; font-size:12px; font-weight:bold; margin-bottom:10px;">MODO ESPERA</div>
+            <img id="caratula-cancion" src="https://via.placeholder.com/300/1e1e1e/1e1e1e" alt="">
+            <h2 id="titulo-cancion">Listo para sonar</h2>
             <div class="controles">
                 <button onclick="prevCancion()">⏮</button>
                 <button onclick="togglePlayPause()" id="btn-play-pause">▶</button>
                 <button onclick="nextCancion(true)">⏭</button>
             </div>
+            <div id="status-api" class="status-msg">Conectando con el cerebro...</div>
         </div>
 
         <div class="queue-area">
@@ -66,11 +69,25 @@
         let player, reproduciendo = false, colaCanciones = [], cancionActual = null, artistaActivo = "";
         const API_URL = "https://anesidora-api.onrender.com";
 
+        // 1. FUNCIÓN DE CARGA INICIAL (PRE-CALENTAMIENTO)
+        async function inicializarApp() {
+            console.log("Iniciando pre-calentamiento...");
+            // Despertamos al servidor apenas carga la página
+            fetch(API_URL).then(() => {
+                document.getElementById('status-api').innerText = "Cerebro en línea ✅";
+            }).catch(() => {
+                document.getElementById('status-api').innerText = "Cerebro despertando... (puede tardar 30s)";
+            });
+            
+            cargarEstacionesGuardadas();
+        }
+
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', { height: '10', width: '10', videoId: '', playerVars: { 'autoplay': 1, 'controls': 0 },
                 events: { 'onStateChange': e => {
-                    if (e.data == YT.PlayerState.PLAYING) { document.getElementById('btn-play-pause').innerHTML = '⏸'; reproduciendo = true; }
-                    else if (e.data == YT.PlayerState.PAUSED) { document.getElementById('btn-play-pause').innerHTML = '▶'; reproduciendo = false; }
+                    const btn = document.getElementById('btn-play-pause');
+                    if (e.data == YT.PlayerState.PLAYING) { btn.innerHTML = '⏸'; reproduciendo = true; }
+                    else if (e.data == YT.PlayerState.PAUSED) { btn.innerHTML = '▶'; reproduciendo = false; }
                     else if (e.data == YT.PlayerState.ENDED) nextCancion(false);
                 }}
             });
@@ -82,14 +99,15 @@
                 const datos = await res.json();
                 const lista = document.getElementById('lista-estaciones');
                 lista.innerHTML = "";
-                datos.estaciones.forEach(art => agregarEstacionVisual(art));
+                if(datos.estaciones) datos.estaciones.forEach(art => agregarEstacionVisual(art));
             } catch (e) { console.error("Error cargando estaciones"); }
         }
 
         async function iniciarEstacionNueva() {
             const art = document.getElementById('artista-input').value;
             if (!art) return;
-            await fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
+            // Guardamos en DB e iniciamos
+            fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
             agregarEstacionVisual(art, true);
             reproducirEstacion(art);
             document.getElementById('artista-input').value = "";
@@ -113,24 +131,29 @@
         async function reproducirEstacion(artista) {
             artistaActivo = artista;
             document.getElementById('estacion-label').innerText = "ESTACIÓN: " + artista.toUpperCase();
-            document.getElementById('titulo-cancion').innerText = "Despertando al algoritmo... ☕";
+            document.getElementById('titulo-cancion').innerText = "Invocando música... ☕";
             marcarActiva(artista);
+            
             try {
                 const resB = await fetch(`${API_URL}/buscar?artista=${encodeURIComponent(artista)}`);
                 const datosB = await resB.json();
                 const semilla = datosB.cancion_encontrada[0];
                 cargarCancion(semilla);
+                
                 const resR = await fetch(`${API_URL}/radio?video_id=${semilla.videoId}&artista=${encodeURIComponent(artista)}`);
                 const datosR = await resR.json();
                 colaCanciones = datosR.cola.slice(1);
                 actualizarColaUI();
-            } catch (e) { document.getElementById('titulo-cancion').innerText = "Servidor durmiendo. Reintenta en 10s."; }
+            } catch (e) { 
+                document.getElementById('titulo-cancion').innerText = "El motor está frío. Reintenta en 10s."; 
+            }
         }
 
         function cargarCancion(c) {
             cancionActual = c;
             document.getElementById('titulo-cancion').innerText = c.title;
-            document.getElementById('caratula-cancion').src = c.thumbnails[c.thumbnails.length-1].url;
+            const thumb = c.thumbnails[c.thumbnails.length-1].url;
+            document.getElementById('caratula-cancion').src = thumb;
             player.loadVideoById(c.videoId);
         }
 
@@ -140,8 +163,13 @@
         }
 
         function nextCancion(manual) {
-            if (manual && cancionActual) fetch(`${API_URL}/registrar-salto?video_id=${cancionActual.videoId}&titulo=${encodeURIComponent(cancionActual.title)}`);
-            if (colaCanciones.length > 0) { cargarCancion(colaCanciones.shift()); actualizarColaUI(); }
+            if (manual && cancionActual) {
+                fetch(`${API_URL}/registrar-salto?video_id=${cancionActual.videoId}&titulo=${encodeURIComponent(cancionActual.title)}`);
+            }
+            if (colaCanciones.length > 0) { 
+                cargarCancion(colaCanciones.shift()); 
+                actualizarColaUI(); 
+            }
         }
 
         function togglePlayPause() {
