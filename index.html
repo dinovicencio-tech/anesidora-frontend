@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anesidora Radio</title>
     <style>
-        /* Mismos estilos visuales (sin cambios aquí) */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff; margin: 0; padding: 20px; }
         h1 { color: #1DB954; text-align: center; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #aaaaaa; margin-top: 0; margin-bottom: 30px; font-size: 14px; }
@@ -57,7 +56,7 @@
             <div class="controles">
                 <button onclick="prevCancion()" title="Atrás">⏮</button>
                 <button onclick="togglePlayPause()" id="btn-play-pause" title="Play/Pausa">▶</button>
-                <button onclick="nextCancion()" title="Siguiente">⏭</button>
+                <button onclick="nextCancion(true)" title="Siguiente">⏭</button>
             </div>
         </div>
 
@@ -75,7 +74,8 @@
     <script>
         let player;
         let reproduciendo = false;
-        let colaCanciones = []; // Memoria de las próximas canciones
+        let colaCanciones = []; 
+        let cancionActual = null; // NUEVO: Memoria de lo que está sonando
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
@@ -85,10 +85,8 @@
             });
         }
 
-        // --- SISTEMA DE ESTADOS (AQUÍ OCURRE LA MAGIA DEL AUTOPLAY) ---
         function onPlayerStateChange(event) {
             const btn = document.getElementById('btn-play-pause');
-            
             if (event.data == YT.PlayerState.PLAYING) {
                 btn.innerHTML = '⏸';
                 reproduciendo = true;
@@ -98,12 +96,11 @@
             } else if (event.data == YT.PlayerState.BUFFERING) {
                 btn.innerHTML = '⏳';
             } else if (event.data == YT.PlayerState.ENDED) {
-                // ¡La canción terminó! Pasamos a la siguiente automáticamente.
-                nextCancion();
+                // Si termina sola, es un paso natural (false)
+                nextCancion(false);
             }
         }
 
-        // --- LÓGICA DE ESTACIONES ---
         function iniciarEstacionNueva() {
             const artista = document.getElementById('artista-input').value;
             if (!artista) return;
@@ -137,7 +134,6 @@
             marcarEstacionActivaEnLista(artista);
             
             try {
-                // 1. Buscamos la canción semilla
                 const urlBuscar = `https://anesidora-api.onrender.com/buscar?artista=${artista}`;
                 const resBuscar = await fetch(urlBuscar);
                 const datosBuscar = await resBuscar.json();
@@ -146,13 +142,11 @@
                 cargarInfoEnPantalla(cancionSemilla);
                 player.loadVideoById(cancionSemilla.videoId);
 
-                // 2. Le pedimos a Python que genere la Radio basada en esta canción
                 document.getElementById('cola-lista').innerHTML = "<li>Analizando el genoma musical... ⏳</li>";
                 const urlRadio = `https://anesidora-api.onrender.com/radio?video_id=${cancionSemilla.videoId}`;
                 const resRadio = await fetch(urlRadio);
                 const datosRadio = await resRadio.json();
                 
-                // YouTube devuelve la canción semilla en la posición [0], así que la quitamos y guardamos el resto
                 colaCanciones = datosRadio.cola.slice(1);
                 actualizarUICola();
 
@@ -163,10 +157,9 @@
             }
         }
 
-        // --- SISTEMA DE REPRODUCCIÓN Y COLA ---
         function cargarInfoEnPantalla(cancion) {
+            cancionActual = cancion; // Guardamos la canción activa
             document.getElementById('titulo-cancion').innerText = cancion.title;
-            // Manejamos las carátulas (algunas rutas de la API devuelven listas diferentes)
             if (cancion.thumbnails && cancion.thumbnails.length > 0) {
                 document.getElementById('caratula-cancion').src = cancion.thumbnails[cancion.thumbnails.length - 1].url;
             }
@@ -175,27 +168,29 @@
         function actualizarUICola() {
             const ul = document.getElementById('cola-lista');
             ul.innerHTML = "";
-            // Mostramos solo las próximas 5 canciones en la pantalla
             const aMostrar = colaCanciones.slice(0, 5);
             aMostrar.forEach(c => {
                 const li = document.createElement('li');
-                // Algunos resultados de radio traen 'artists', cuidamos de que no se rompa
                 const nombreArtista = (c.artists && c.artists.length > 0) ? c.artists[0].name : "Artista Desconocido";
                 li.innerHTML = `${c.title} <span>${nombreArtista}</span>`;
                 ul.appendChild(li);
             });
         }
 
-        function nextCancion() { 
+        // NUEVO: La función ahora recibe si el salto fue manual
+        function nextCancion(esSaltoManual = false) { 
             if (colaCanciones.length > 0) {
-                // Saca la primera canción de la lista (y la elimina del array)
+                
+                // Si el usuario apretó el botón, le avisamos a la base de datos
+                if (esSaltoManual && cancionActual) {
+                    const urlSalto = `https://anesidora-api.onrender.com/registrar-salto?video_id=${cancionActual.videoId}&titulo=${encodeURIComponent(cancionActual.title)}`;
+                    fetch(urlSalto).catch(err => console.error("Error al registrar salto:", err));
+                }
+
                 const siguiente = colaCanciones.shift();
                 cargarInfoEnPantalla(siguiente);
                 player.loadVideoById(siguiente.videoId);
                 actualizarUICola();
-
-                // Si la cola se está vaciando (quedan menos de 2), podríamos pedirle a Python más canciones.
-                // Lo programaremos luego para que sea verdaderamente infinita.
             } else {
                 document.getElementById('titulo-cancion').innerText = "Fin de la radio.";
                 player.stopVideo();
