@@ -10,41 +10,34 @@
         .subtitle { text-align: center; color: #aaaaaa; font-size: 14px; margin-bottom: 30px; }
         .layout { display: flex; justify-content: space-between; max-width: 1200px; margin: 0 auto; gap: 20px; }
         
-        /* Contenedores */
         .sidebar, .player-area, .queue-area { background-color: #1e1e1e; padding: 20px; border-radius: 10px; }
         .sidebar { width: 20%; }
         .queue-area { width: 30%; }
         .player-area { width: 40%; text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 520px; }
         
-        /* Sidebar y Estaciones */
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #333; color: white; outline: none; }
-        button.btn-ir { background: #1DB954; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .estaciones-list { list-style: none; padding: 0; }
+        input { width: 80%; padding: 10px; border-radius: 5px; border: none; background: #333; color: white; outline: none; margin-bottom: 10px; }
+        button.btn-ir { background: #1DB954; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        
+        .estaciones-list { list-style: none; padding: 0; margin-top: 20px; }
         .estaciones-list li { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .estaciones-list li:hover { background: #252525; }
         .estaciones-list li.activa { color: #1DB954; border-left: 3px solid #1DB954; background: #252525; font-weight: bold; }
         
-        /* Reproductor */
         #caratula-cancion { width: 100%; max-width: 280px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); background: #333; }
-        .info-reproductor h2 { margin: 0; font-size: 20px; line-height: 1.2; }
-        .info-reproductor .artista { margin: 5px 0; color: #1DB954; font-weight: bold; font-size: 16px; }
-        .info-reproductor .album { font-size: 13px; color: #777; margin-bottom: 15px; }
+        .info-reproductor h2 { margin: 0; font-size: 20px; }
+        .artista { color: #1DB954; font-weight: bold; margin-top: 5px; }
+        .album { font-size: 13px; color: #777; margin-bottom: 15px; }
 
-        .controles { margin-top: 20px; }
-        .controles button { background: none; border: 1px solid #444; color: white; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; margin: 0 8px; font-size: 20px; transition: 0.2s; }
-        .controles button:hover { background: #1DB954; border-color: #1DB954; transform: scale(1.05); }
+        .controles button { background: none; border: 1px solid #444; color: white; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; margin: 0 8px; font-size: 20px; }
+        .controles button:hover { background: #1DB954; border-color: #1DB954; }
 
-        /* Cola de Reproducción Interactiva */
-        .queue-list { list-style: none; padding: 0; margin: 0; }
-        .queue-list li { padding: 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: 0.2s; border-radius: 5px; margin-bottom: 4px; display: flex; flex-direction: column; }
+        .queue-list { list-style: none; padding: 0; }
+        .queue-list li { padding: 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; border-radius: 5px; margin-bottom: 4px; display: flex; flex-direction: column; }
         .queue-list li:hover { background: #2a2a2a; border-left: 3px solid #1DB954; }
-        .queue-list li strong { font-size: 13px; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-list li strong { font-size: 13px; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .queue-list li span { font-size: 11px; color: #1DB954; }
         .queue-list li em { font-size: 10px; color: #666; font-style: normal; }
         
         .msg-ia { text-align: center; font-size: 11px; color: #444; padding: 15px; font-style: italic; border-top: 1px solid #2a2a2a; margin-top: 10px; }
-        
         #youtube-container { position: absolute; left: -9999px; }
     </style>
 </head>
@@ -56,15 +49,13 @@
     <div class="layout">
         <div class="sidebar">
             <h3>Estaciones</h3>
-            <div class="input-group">
-                <input type="text" id="artista-input" placeholder="Ej: Soda Stereo">
-                <button class="btn-ir" onclick="iniciarEstacionNueva()">IR</button>
-            </div>
+            <input type="text" id="artista-input" placeholder="Ej: Radiohead">
+            <button class="btn-ir" onclick="iniciarEstacionNueva()">IR</button>
             <ul class="estaciones-list" id="lista-estaciones"></ul>
         </div>
 
         <div class="player-area">
-            <div id="estacion-label" style="color:#555; font-size:11px; letter-spacing:1px; margin-bottom:15px; font-weight:bold;">MODO ESPERA</div>
+            <div id="estacion-label" style="color:#555; font-size:11px; font-weight:bold; margin-bottom:15px;">ESPERANDO</div>
             <img id="caratula-cancion" src="https://via.placeholder.com/300/1e1e1e/333?text=Anesidora" alt="">
             <div class="info-reproductor">
                 <h2 id="titulo-cancion">Listo para sonar</h2>
@@ -76,7 +67,7 @@
                 <button onclick="togglePlayPause()" id="btn-play-pause">▶</button>
                 <button onclick="nextCancion(true)">⏭</button>
             </div>
-            <div id="status-api" style="font-size:10px; color:#333; margin-top:25px;">Cargando cerebro...</div>
+            <div id="status-api" style="font-size:10px; color:#333; margin-top:25px;">Cargando...</div>
         </div>
 
         <div class="queue-area">
@@ -94,18 +85,15 @@
         const API_URL = "https://anesidora-api.onrender.com";
 
         async function inicializarApp() {
-            fetch(API_URL).then(() => {
-                document.getElementById('status-api').innerText = "Cerebro Online ✅";
-            });
+            fetch(API_URL).then(() => document.getElementById('status-api').innerText = "Cerebro Online ✅");
             cargarEstacionesGuardadas();
         }
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', { height: '10', width: '10', videoId: '', playerVars: { 'autoplay': 1, 'controls': 0 },
                 events: { 'onStateChange': e => {
-                    const btn = document.getElementById('btn-play-pause');
-                    if (e.data == YT.PlayerState.PLAYING) { btn.innerHTML = '⏸'; reproduciendo = true; }
-                    else if (e.data == YT.PlayerState.PAUSED) { btn.innerHTML = '▶'; reproduciendo = false; }
+                    if (e.data == YT.PlayerState.PLAYING) { document.getElementById('btn-play-pause').innerHTML = '⏸'; reproduciendo = true; }
+                    else if (e.data == YT.PlayerState.PAUSED) { document.getElementById('btn-play-pause').innerHTML = '▶'; reproduciendo = false; }
                     else if (e.data == YT.PlayerState.ENDED) nextCancion(false);
                 }}
             });
@@ -119,15 +107,6 @@
                 lista.innerHTML = "";
                 if(datos.estaciones) datos.estaciones.forEach(art => agregarEstacionVisual(art));
             } catch (e) { console.error("Error DB"); }
-        }
-
-        async function iniciarEstacionNueva() {
-            const art = document.getElementById('artista-input').value;
-            if (!art) return;
-            fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
-            agregarEstacionVisual(art, true);
-            reproducirEstacion(art);
-            document.getElementById('artista-input').value = "";
         }
 
         function agregarEstacionVisual(artista, alInicio = false) {
@@ -145,6 +124,15 @@
             cargarEstacionesGuardadas();
         }
 
+        async function iniciarEstacionNueva() {
+            const art = document.getElementById('artista-input').value;
+            if (!art) return;
+            fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
+            agregarEstacionVisual(art, true);
+            reproducirEstacion(art);
+            document.getElementById('artista-input').value = "";
+        }
+
         async function reproducirEstacion(artista) {
             artistaActivo = artista;
             document.getElementById('estacion-label').innerText = "ESTACIÓN: " + artista.toUpperCase();
@@ -154,15 +142,19 @@
             try {
                 const resB = await fetch(`${API_URL}/buscar?artista=${encodeURIComponent(artista)}`);
                 const datosB = await resB.json();
+                if(!datosB.cancion_encontrada.length) throw "No hay resultados";
+                
                 const semilla = datosB.cancion_encontrada[0];
                 cargarCancion(semilla);
                 
+                // Pedimos la radio
                 const resR = await fetch(`${API_URL}/radio?video_id=${semilla.videoId}&artista=${encodeURIComponent(artista)}`);
                 const datosR = await resR.json();
                 colaCanciones = datosR.cola.slice(1);
                 actualizarColaUI();
             } catch (e) { 
-                document.getElementById('titulo-cancion').innerText = "Reintentando conexión..."; 
+                console.log("Error de conexión:", e);
+                document.getElementById('titulo-cancion').innerText = "Conexión lenta. Reintenta."; 
             }
         }
 
@@ -170,18 +162,10 @@
             cancionActual = c;
             document.getElementById('titulo-cancion').innerText = c.title;
             
-            // Procesar Artista (unir si son varios)
-            let artNombre = "Artista desconocido";
-            if (c.artists) {
-                artNombre = Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists);
-            }
+            let artNombre = c.artists ? (Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists)) : "Artista desconocido";
             document.getElementById('artista-cancion').innerText = artNombre;
 
-            // Procesar Álbum
-            let albNombre = "";
-            if (c.album) {
-                albNombre = typeof c.album === 'object' ? c.album.name : c.album;
-            }
+            let albNombre = c.album ? (typeof c.album === 'object' ? c.album.name : c.album) : "";
             document.getElementById('album-cancion').innerText = albNombre;
 
             const thumb = (c.thumbnails && c.thumbnails.length) ? c.thumbnails[c.thumbnails.length-1].url : "";
@@ -192,30 +176,20 @@
         function actualizarColaUI() {
             const ul = document.getElementById('cola-lista');
             ul.innerHTML = "";
-            
-            // Mostramos las primeras 10 canciones
             const proximas = colaCanciones.slice(0, 10);
-            
             proximas.forEach((c, index) => {
                 const li = document.createElement('li');
                 let art = c.artists ? (Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists)) : "Varios";
                 let alb = c.album ? (typeof c.album === 'object' ? c.album.name : c.album) : "";
-                
                 li.innerHTML = `<strong>${c.title}</strong><span>${art}</span><em>${alb}</em>`;
-                
-                // NUEVO: Click para saltar directamente a esta canción
                 li.onclick = () => saltarACancionDesdeCola(index);
-                
                 ul.appendChild(li);
             });
-
-            // Opción 11: Mensaje de la IA
             document.getElementById('msg-ia').innerText = proximas.length > 0 ? "✨ Aprendiendo de tus gustos musicales..." : "";
         }
 
         function saltarACancionDesdeCola(index) {
             const elegida = colaCanciones[index];
-            // Actualizamos la cola: eliminamos todo lo anterior a la elegida y la elegida misma
             colaCanciones = colaCanciones.slice(index + 1);
             cargarCancion(elegida);
             actualizarColaUI();
@@ -229,6 +203,9 @@
                 const siguiente = colaCanciones.shift();
                 cargarCancion(siguiente); 
                 actualizarColaUI(); 
+            } else if (cancionActual) {
+                // Si la cola se vació (ej. por filtros), reintentamos generar radio
+                reproducirEstacion(artistaActivo);
             }
         }
 
