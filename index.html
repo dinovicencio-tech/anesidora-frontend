@@ -9,9 +9,14 @@
         h1 { color: #1DB954; text-align: center; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #aaaaaa; font-size: 14px; margin-bottom: 30px; }
         .layout { display: flex; justify-content: space-between; max-width: 1200px; margin: 0 auto; gap: 20px; }
+        
+        /* Contenedores */
         .sidebar, .player-area, .queue-area { background-color: #1e1e1e; padding: 20px; border-radius: 10px; }
-        .sidebar, .queue-area { width: 25%; }
-        .player-area { width: 45%; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .sidebar { width: 20%; }
+        .queue-area { width: 30%; }
+        .player-area { width: 40%; text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 520px; }
+        
+        /* Sidebar y Estaciones */
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
         input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #333; color: white; outline: none; }
         button.btn-ir { background: #1DB954; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
@@ -19,13 +24,28 @@
         .estaciones-list li { padding: 12px 10px; border-bottom: 1px solid #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .estaciones-list li:hover { background: #252525; }
         .estaciones-list li.activa { color: #1DB954; border-left: 3px solid #1DB954; background: #252525; font-weight: bold; }
-        #caratula-cancion { width: 100%; max-width: 300px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); background-color: #333; }
-        .controles button { background: none; border: 1px solid #555; color: white; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; margin: 0 10px; font-size: 20px; transition: 0.2s; }
-        .controles button:hover { background: #1DB954; border-color: #1DB954; }
-        .queue-list { list-style: none; padding: 0; font-size: 14px; color: #ccc; }
-        .queue-list li { padding: 8px 0; border-bottom: 1px dashed #333; }
+        
+        /* Reproductor */
+        #caratula-cancion { width: 100%; max-width: 280px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); background: #333; }
+        .info-reproductor h2 { margin: 0; font-size: 20px; line-height: 1.2; }
+        .info-reproductor .artista { margin: 5px 0; color: #1DB954; font-weight: bold; font-size: 16px; }
+        .info-reproductor .album { font-size: 13px; color: #777; margin-bottom: 15px; }
+
+        .controles { margin-top: 20px; }
+        .controles button { background: none; border: 1px solid #444; color: white; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; margin: 0 8px; font-size: 20px; transition: 0.2s; }
+        .controles button:hover { background: #1DB954; border-color: #1DB954; transform: scale(1.05); }
+
+        /* Cola de Reproducción Interactiva */
+        .queue-list { list-style: none; padding: 0; margin: 0; }
+        .queue-list li { padding: 10px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: 0.2s; border-radius: 5px; margin-bottom: 4px; display: flex; flex-direction: column; }
+        .queue-list li:hover { background: #2a2a2a; border-left: 3px solid #1DB954; }
+        .queue-list li strong { font-size: 13px; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-list li span { font-size: 11px; color: #1DB954; }
+        .queue-list li em { font-size: 10px; color: #666; font-style: normal; }
+        
+        .msg-ia { text-align: center; font-size: 11px; color: #444; padding: 15px; font-style: italic; border-top: 1px solid #2a2a2a; margin-top: 10px; }
+        
         #youtube-container { position: absolute; left: -9999px; }
-        .status-msg { font-size: 12px; color: #888; margin-top: 10px; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -35,30 +55,34 @@
 
     <div class="layout">
         <div class="sidebar">
-            <h3>Crear Estación</h3>
+            <h3>Estaciones</h3>
             <div class="input-group">
-                <input type="text" id="artista-input" placeholder="Ej: Mute Math">
+                <input type="text" id="artista-input" placeholder="Ej: Soda Stereo">
                 <button class="btn-ir" onclick="iniciarEstacionNueva()">IR</button>
             </div>
-            <h3>Tus Estaciones</h3>
             <ul class="estaciones-list" id="lista-estaciones"></ul>
         </div>
 
         <div class="player-area">
-            <div id="estacion-label" style="color:#1DB954; font-size:12px; font-weight:bold; margin-bottom:10px;">MODO ESPERA</div>
-            <img id="caratula-cancion" src="https://via.placeholder.com/300/1e1e1e/1e1e1e" alt="">
-            <h2 id="titulo-cancion">Listo para sonar</h2>
+            <div id="estacion-label" style="color:#555; font-size:11px; letter-spacing:1px; margin-bottom:15px; font-weight:bold;">MODO ESPERA</div>
+            <img id="caratula-cancion" src="https://via.placeholder.com/300/1e1e1e/333?text=Anesidora" alt="">
+            <div class="info-reproductor">
+                <h2 id="titulo-cancion">Listo para sonar</h2>
+                <div id="artista-cancion" class="artista"></div>
+                <div id="album-cancion" class="album"></div>
+            </div>
             <div class="controles">
                 <button onclick="prevCancion()">⏮</button>
                 <button onclick="togglePlayPause()" id="btn-play-pause">▶</button>
                 <button onclick="nextCancion(true)">⏭</button>
             </div>
-            <div id="status-api" class="status-msg">Conectando con el cerebro...</div>
+            <div id="status-api" style="font-size:10px; color:#333; margin-top:25px;">Cargando cerebro...</div>
         </div>
 
         <div class="queue-area">
             <h3>Próximas en sonar</h3>
-            <ul class="queue-list" id="cola-lista"><li>El algoritmo descansa...</li></ul>
+            <ul class="queue-list" id="cola-lista"></ul>
+            <div class="msg-ia" id="msg-ia"></div>
         </div>
     </div>
 
@@ -69,16 +93,10 @@
         let player, reproduciendo = false, colaCanciones = [], cancionActual = null, artistaActivo = "";
         const API_URL = "https://anesidora-api.onrender.com";
 
-        // 1. FUNCIÓN DE CARGA INICIAL (PRE-CALENTAMIENTO)
         async function inicializarApp() {
-            console.log("Iniciando pre-calentamiento...");
-            // Despertamos al servidor apenas carga la página
             fetch(API_URL).then(() => {
-                document.getElementById('status-api').innerText = "Cerebro en línea ✅";
-            }).catch(() => {
-                document.getElementById('status-api').innerText = "Cerebro despertando... (puede tardar 30s)";
+                document.getElementById('status-api').innerText = "Cerebro Online ✅";
             });
-            
             cargarEstacionesGuardadas();
         }
 
@@ -100,13 +118,12 @@
                 const lista = document.getElementById('lista-estaciones');
                 lista.innerHTML = "";
                 if(datos.estaciones) datos.estaciones.forEach(art => agregarEstacionVisual(art));
-            } catch (e) { console.error("Error cargando estaciones"); }
+            } catch (e) { console.error("Error DB"); }
         }
 
         async function iniciarEstacionNueva() {
             const art = document.getElementById('artista-input').value;
             if (!art) return;
-            // Guardamos en DB e iniciamos
             fetch(`${API_URL}/guardar-estacion?artista=${encodeURIComponent(art)}`);
             agregarEstacionVisual(art, true);
             reproducirEstacion(art);
@@ -116,7 +133,7 @@
         function agregarEstacionVisual(artista, alInicio = false) {
             const lista = document.getElementById('lista-estaciones');
             const li = document.createElement('li');
-            li.innerHTML = `<span>${artista} Radio</span><button style="background:none; border:none; color:#888; cursor:pointer;" onclick="eliminarEstacion(event, '${artista}')">✖</button>`;
+            li.innerHTML = `<span>${artista}</span><button style="background:none; border:none; color:#555; cursor:pointer;" onclick="eliminarEstacion(event, '${artista}')">✖</button>`;
             li.onclick = () => reproducirEstacion(artista);
             li.dataset.artista = artista;
             alInicio ? lista.prepend(li) : lista.appendChild(li);
@@ -131,7 +148,7 @@
         async function reproducirEstacion(artista) {
             artistaActivo = artista;
             document.getElementById('estacion-label').innerText = "ESTACIÓN: " + artista.toUpperCase();
-            document.getElementById('titulo-cancion').innerText = "Invocando música... ☕";
+            document.getElementById('titulo-cancion').innerText = "Invocando... ☕";
             marcarActiva(artista);
             
             try {
@@ -145,21 +162,63 @@
                 colaCanciones = datosR.cola.slice(1);
                 actualizarColaUI();
             } catch (e) { 
-                document.getElementById('titulo-cancion').innerText = "El motor está frío. Reintenta en 10s."; 
+                document.getElementById('titulo-cancion').innerText = "Reintentando conexión..."; 
             }
         }
 
         function cargarCancion(c) {
             cancionActual = c;
             document.getElementById('titulo-cancion').innerText = c.title;
-            const thumb = c.thumbnails[c.thumbnails.length-1].url;
+            
+            // Procesar Artista (unir si son varios)
+            let artNombre = "Artista desconocido";
+            if (c.artists) {
+                artNombre = Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists);
+            }
+            document.getElementById('artista-cancion').innerText = artNombre;
+
+            // Procesar Álbum
+            let albNombre = "";
+            if (c.album) {
+                albNombre = typeof c.album === 'object' ? c.album.name : c.album;
+            }
+            document.getElementById('album-cancion').innerText = albNombre;
+
+            const thumb = (c.thumbnails && c.thumbnails.length) ? c.thumbnails[c.thumbnails.length-1].url : "";
             document.getElementById('caratula-cancion').src = thumb;
             player.loadVideoById(c.videoId);
         }
 
         function actualizarColaUI() {
             const ul = document.getElementById('cola-lista');
-            ul.innerHTML = colaCanciones.slice(0, 5).map(c => `<li>${c.title}</li>`).join("");
+            ul.innerHTML = "";
+            
+            // Mostramos las primeras 10 canciones
+            const proximas = colaCanciones.slice(0, 10);
+            
+            proximas.forEach((c, index) => {
+                const li = document.createElement('li');
+                let art = c.artists ? (Array.isArray(c.artists) ? c.artists.map(a => a.name).join(", ") : (c.artists.name || c.artists)) : "Varios";
+                let alb = c.album ? (typeof c.album === 'object' ? c.album.name : c.album) : "";
+                
+                li.innerHTML = `<strong>${c.title}</strong><span>${art}</span><em>${alb}</em>`;
+                
+                // NUEVO: Click para saltar directamente a esta canción
+                li.onclick = () => saltarACancionDesdeCola(index);
+                
+                ul.appendChild(li);
+            });
+
+            // Opción 11: Mensaje de la IA
+            document.getElementById('msg-ia').innerText = proximas.length > 0 ? "✨ Aprendiendo de tus gustos musicales..." : "";
+        }
+
+        function saltarACancionDesdeCola(index) {
+            const elegida = colaCanciones[index];
+            // Actualizamos la cola: eliminamos todo lo anterior a la elegida y la elegida misma
+            colaCanciones = colaCanciones.slice(index + 1);
+            cargarCancion(elegida);
+            actualizarColaUI();
         }
 
         function nextCancion(manual) {
@@ -167,7 +226,8 @@
                 fetch(`${API_URL}/registrar-salto?video_id=${cancionActual.videoId}&titulo=${encodeURIComponent(cancionActual.title)}`);
             }
             if (colaCanciones.length > 0) { 
-                cargarCancion(colaCanciones.shift()); 
+                const siguiente = colaCanciones.shift();
+                cargarCancion(siguiente); 
                 actualizarColaUI(); 
             }
         }
